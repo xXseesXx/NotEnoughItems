@@ -227,9 +227,17 @@ public class SearchField extends TextField implements ItemFilterProvider {
     }
 
     @Override
+    public void update() {
+        // Check for mouse button keybinds (KeyInputEvent doesn't fire for mouse buttons)
+        if (isVisible() && KeyManager.wasKeyPressed("gui.search")) {
+            setFocus(true);
+        }
+    }
+
+    @Override
     public void lastKeyTyped(int keyID, char keyChar) {
 
-        if (isVisible() && KeyManager.isHashDown("gui.search")) {
+        if (isVisible() && KeyManager.isPressed("gui.search")) {
             setFocus(true);
         }
         if (focused() && KeyManager.isKeyDown("gui.getprevioussearch")) {

@@ -2,6 +2,7 @@ package codechicken.nei.recipe;
 
 import static codechicken.nei.NEIClientUtils.translate;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -90,6 +91,12 @@ public class GuiFavoriteButton extends GuiRecipeButton {
     @Override
     public void update() {
         this.favorite = this.favorite && FavoriteRecipes.getManualFavorite(this.recipe.getRecipeId()) != null;
+
+        // Check for mouse button keybinds (KeyInputEvent doesn't fire for mouse buttons)
+        final Point mouse = GuiDraw.getMousePosition();
+        if (contains(mouse.x, mouse.y) && KeyManager.wasKeyPressed("bookmark.add") && NEIClientUtils.shiftKey()) {
+            saveRecipeInBookmark();
+        }
     }
 
     @Override
@@ -123,7 +130,7 @@ public class GuiFavoriteButton extends GuiRecipeButton {
 
     public void lastKeyTyped(char keyChar, int keyID) {
 
-        if (KeyManager.isKeyDown("bookmark.add") && NEIClientUtils.shiftKey()) {
+        if (KeyManager.isPressed("bookmark.add") && NEIClientUtils.shiftKey()) {
             saveRecipeInBookmark();
         }
 

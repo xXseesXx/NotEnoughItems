@@ -28,6 +28,7 @@ public class KeyManager {
     public static LinkedList<IKeyStateTracker> trackers = new LinkedList<>();
     private static final Map<String, KeyBinding> keyBindings = new HashMap<>();
     private static final Map<String, String> keyAliases = new HashMap<>();
+    private static final Map<String, Boolean> keyDownStates = new HashMap<>(); // For edge detection
     private static volatile boolean pendingOptionsReload = false;
 
     static {
@@ -135,6 +136,30 @@ public class KeyManager {
     public static boolean isPressed(String ident) {
         final KeyBinding binding = getKeyBinding(ident);
         return binding != null && binding.isPressed();
+    }
+
+    /**
+     * Check if a key was just pressed (transition from not-pressed to pressed). Works for both keyboard keys and mouse
+     * buttons.
+     * 
+     * This is needed because mouse buttons bound to keybinds don't fire KeyInputEvent, so we need to detect the edge
+     * transition via polling.
+     * 
+     * Use this in update() for mouse button support. Use isPressed() in lastKeyTyped() for keyboard support.
+     * 
+     * @param ident The keybind identifier
+     * @return true if the key was just pressed this tick, false otherwise
+     */
+    public static boolean wasKeyPressed(String ident) {
+        final String resolvedIdent = keyAliases.getOrDefault(ident, ident);
+        final boolean isDown = isKeyDown(ident);
+        final Boolean wasDown = keyDownStates.get(resolvedIdent);
+
+        // Update state for next check
+        keyDownStates.put(resolvedIdent, isDown);
+
+        // Return true only on the transition from not-pressed to pressed
+        return isDown && (wasDown == null || !wasDown);
     }
 
     private static String categoryFor(String ident) {
